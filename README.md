@@ -48,11 +48,11 @@ CI (`.github/workflows/ci.yml`) runs `composer audit`, `composer validate --stri
 
 ## Deploy
 
-1. Apply `infra/firebase-cloud.patch` in the `firebase-cloud` repo (`git apply`) and run its Terraform workflow: creates the identity, `flyvipcms` MySQL secret shells (filled by `personal-cloud` from the `mysql-app-catalog`), Cloud Run service, Hosting site and `flyvipcms.junaid.guru`.
-2. Set the repo secrets from the Terraform outputs: `WIF_PROVIDER` ← `flyvipcms_wif_provider`, `GCP_SA_EMAIL` ← `flyvipcms_gcp_sa_email`.
-3. Push to `main`: `deploy.yml` builds the image, pushes to Artifact Registry and runs `gcloud run deploy`. The container applies migrations on boot (`php spark migrate --all`); set `SKIP_MIGRATIONS=1` to skip.
-4. Create the first admin once the service is up:
-   `gcloud run jobs` / `docker exec` → `ADMIN_PASSWORD=… php spark app:create-admin <username> <email>`.
+1. The infrastructure lives in `firebase-cloud` (`terraform/apps/flyvipcms.tf`, merged in poly-glot/firebase-cloud#57): identity and WIF provider, `flyvipcms` MySQL secret shells, Cloud Run service, Hosting site and `flyvipcms.junaid.guru`, plus the `mysql-app-catalog` entry.
+2. personal-cloud's `terraform-mysql-apps` workflow reads the catalog and creates the `flyvipcms` database and user and fills `flyvipcms-db-user|pass|name`. Cloud Run cannot be created until those secret versions exist, so the first firebase-cloud apply fails on the service; re-run the firebase-cloud workflow after the DB is provisioned.
+3. Set the repo secrets from the Terraform outputs: `WIF_PROVIDER` ← `flyvipcms_wif_provider`, `GCP_SA_EMAIL` ← `flyvipcms_gcp_sa_email`. Add the DNS records from `flyvipcms_required_dns`.
+4. Push to `main`: `deploy.yml` builds the image, pushes to Artifact Registry and runs `gcloud run deploy`. The container applies migrations on boot (`php spark migrate --all`); set `SKIP_MIGRATIONS=1` to skip.
+5. Create the first admin once the service is up: `ADMIN_PASSWORD=… php spark app:create-admin <username> <email>` (Cloud Run job or `docker exec`).
 
 Runtime configuration (env): `CI_ENVIRONMENT`, `APP_FULL_BASE_URL`, `COOKIE_SECURE`, `DB_HOST`, `DB_USER`, `DB_PASS`, `DB_NAME`, `DB_SSL`, `DB_PORT`.
 
