@@ -36,7 +36,7 @@ jobs:
       DB_TEST_NAME: flyvip_test
       DB_USER: flyvip
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: shivammathur/setup-php@v2
         with:
@@ -94,7 +94,7 @@ jobs:
       DB_PASS: flyvip
       DB_USER: flyvip
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: shivammathur/setup-php@v2
         with:
@@ -154,7 +154,7 @@ jobs:
       DB_PASS: flyvip
       DB_USER: flyvip
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: shivammathur/setup-php@v2
         with:
@@ -190,6 +190,6 @@ jobs:
     needs: quality
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - run: docker build -t flyvipcms:ci .
