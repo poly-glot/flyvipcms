@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Exceptions\DomainRuleViolation;
+use App\Models\RouteModel;
 use CodeIgniter\Database\BaseConnection;
 use CodeIgniter\Shield\Entities\User;
 use CodeIgniter\Shield\Models\UserModel;
@@ -19,15 +20,36 @@ final readonly class MemberService
         'passport_number', 'passport_issued_on', 'passport_due_on', 'favourite_route_id',
     ];
 
+    public const array PROFILE_RULES = [
+        'first_name' => 'required|max_length[100]',
+        'last_name' => 'required|max_length[100]',
+        'company' => 'permit_empty|max_length[150]',
+        'street_address' => 'permit_empty|max_length[255]',
+        'country_id' => 'permit_empty|is_natural_no_zero',
+        'zone_id' => 'permit_empty|is_natural_no_zero',
+        'city' => 'permit_empty|max_length[100]',
+        'zip_code' => 'permit_empty|max_length[20]',
+        'cellphone' => 'permit_empty|max_length[30]',
+        'office_phone' => 'permit_empty|max_length[30]',
+        'home_phone' => 'permit_empty|max_length[30]',
+        'secondary_phone' => 'permit_empty|max_length[30]',
+        'id_number' => 'permit_empty|max_length[50]',
+        'id_due_on' => 'permit_empty|valid_date[Y-m-d]',
+        'passport_number' => 'permit_empty|max_length[50]',
+        'passport_issued_on' => 'permit_empty|valid_date[Y-m-d]',
+        'passport_due_on' => 'permit_empty|valid_date[Y-m-d]',
+        'favourite_route_id' => 'permit_empty|is_natural_no_zero',
+    ];
+
     public function __construct(
         private BaseConnection $db,
         private UserModel $users,
     ) {
     }
 
-    public function create(array $account, array $profile, int $planId, string $joiningFee, string $yearlyFee, array $subMembers = []): int
+    public function create(array $account, array $profile, int $planId, string $joiningFee, string $yearlyFee): int
     {
-        return $this->atomic(function () use ($account, $profile, $planId, $joiningFee, $yearlyFee, $subMembers): int {
+        return $this->atomic(function () use ($account, $profile, $planId, $joiningFee, $yearlyFee): int {
             $plan = $this->plan($planId);
             $user = $this->createLogin($account, 'member');
             $userId = (int) $user->id;
@@ -44,10 +66,6 @@ final readonly class MemberService
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s'),
             ]);
-
-            foreach ($subMembers as $sub) {
-                $this->addSubMember($userId, $sub);
-            }
 
             return $userId;
         });
@@ -145,6 +163,34 @@ final readonly class MemberService
                 }
             }
         });
+    }
+
+    public function primaryMembers(bool $activeOnly = false): array
+    {
+        $query = $this->db->table('members')
+            ->select('members.user_id, members.member_code, profiles.first_name, profiles.last_name')
+            ->join('profiles', 'profiles.user_id = members.user_id')
+            ->where('members.plan_id IS NOT NULL');
+
+        if ($activeOnly) {
+            $query->where('members.status', 'active');
+        }
+
+        return $query->where('members.deleted_at', null)->orderBy('profiles.last_name')->get()->getResultArray();
+    }
+
+    public function profileOptions(): array
+    {
+        return [
+            'countries' => $this->activeNames('countries'),
+            'zones' => $this->activeNames('country_zones'),
+            'routes' => new RouteModel()->labelled(),
+        ];
+    }
+
+    private function activeNames(string $table): array
+    {
+        return array_column($this->db->table($table)->where('active', 1)->orderBy('name')->get()->getResultArray(), 'name', 'id');
     }
 
     private function plan(int $planId): array

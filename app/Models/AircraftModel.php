@@ -13,4 +13,9 @@ class AircraftModel extends AppModel
         'engine_hours_left', 'engine_hours_right', 'variable_cost', 'fixed_cost', 'total_cost',
         'max_altitude', 'gallons_per_hour', 'certification', 'insurance_cost',
     ];
+
+    public function capacities(): array
+    {
+        return array_column($this->findAll(), 'passenger_capacity', 'id');
+    }
 }

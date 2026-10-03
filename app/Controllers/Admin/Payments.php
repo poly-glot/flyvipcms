@@ -43,7 +43,7 @@ class Payments extends BaseController
         $today = new DateTimeImmutable('today');
 
         return view('admin/payments/form', [
-            'members' => $this->primaryMembers(),
+            'members' => $this->memberOptions(service('members')->primaryMembers()),
             'selected' => $selected,
             'allowed' => $selected > 0 ? $payments->allowedTypes($selected) : [],
             'expected' => $selected > 0 ? $this->expectedAmounts($payments, $selected) : [],
@@ -64,7 +64,7 @@ class Payments extends BaseController
         ];
 
         if (!$this->validate($rules)) {
-            return $this->backWithErrors($this->validator?->getErrors() ?? []);
+            return $this->backWithValidationErrors();
         }
 
         $userId = (int) $this->request->getPost('user_id');
@@ -103,23 +103,6 @@ class Payments extends BaseController
             ->getRowArray();
 
         return view('admin/payments/show', ['payment' => $payment ?? throw PageNotFoundException::forPageNotFound()]);
-    }
-
-    private function primaryMembers(): array
-    {
-        $rows = db_connect()->table('members')
-            ->select('members.user_id, members.member_code, profiles.first_name, profiles.last_name')
-            ->join('profiles', 'profiles.user_id = members.user_id')
-            ->where('members.plan_id IS NOT NULL')
-            ->where('members.deleted_at', null)
-            ->orderBy('profiles.last_name')
-            ->get()
-            ->getResultArray();
-
-        return array_column(array_map(
-            static fn (array $row): array => ['id' => $row['user_id'], 'label' => "{$row['first_name']} {$row['last_name']} [{$row['member_code']}]"],
-            $rows,
-        ), 'label', 'id');
     }
 
     private function expectedAmounts(PaymentService $payments, int $userId): array

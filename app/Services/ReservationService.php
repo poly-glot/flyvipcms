@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Domain\FlightPricing;
 use App\Domain\Money;
 use App\Exceptions\DomainRuleViolation;
+use CodeIgniter\Database\BaseBuilder;
 use CodeIgniter\Database\BaseConnection;
 use DateTimeImmutable;
 
@@ -92,12 +93,22 @@ final readonly class ReservationService
         });
     }
 
-    public function seatPrice(int $routeId, int $aircraftId): string
+    public function listing(bool $withMember = false): BaseBuilder
     {
-        $route = $this->row('air_routes', $routeId, 'Route not found.');
-        $aircraft = $this->row('aircrafts', $aircraftId, 'Aircraft not found.');
+        $query = $this->db->table('reservations')
+            ->select('reservations.*, aircrafts.name AS aircraft_name, aircrafts.passenger_capacity AS capacity, from_airport.name AS from_name, to_airport.name AS to_name')
+            ->join('aircrafts', 'aircrafts.id = reservations.aircraft_id')
+            ->join('air_routes', 'air_routes.id = reservations.route_id')
+            ->join('airports AS from_airport', 'from_airport.id = air_routes.from_airport_id')
+            ->join('airports AS to_airport', 'to_airport.id = air_routes.to_airport_id');
 
-        return FlightPricing::seatPrice(Money::normalise($route['cost']), Money::normalise($aircraft['total_cost']));
+        if ($withMember) {
+            $query->select('members.member_code, profiles.first_name, profiles.last_name')
+                ->join('members', 'members.user_id = reservations.user_id')
+                ->join('profiles', 'profiles.user_id = reservations.user_id');
+        }
+
+        return $query;
     }
 
     private function bookComplete(int $userId, array $route, array $aircraft, string $date, int $capacity, string $seatPrice, ?array $owner): int

@@ -16,14 +16,7 @@ class Reservations extends BaseController
     public function index(): string
     {
         return view('admin/reservations/index', [
-            'reservations' => db_connect()->table('reservations')
-                ->select('reservations.*, members.member_code, profiles.first_name, profiles.last_name, aircrafts.name AS aircraft_name, aircrafts.passenger_capacity AS capacity, from_airport.name AS from_name, to_airport.name AS to_name')
-                ->join('members', 'members.user_id = reservations.user_id')
-                ->join('profiles', 'profiles.user_id = reservations.user_id')
-                ->join('aircrafts', 'aircrafts.id = reservations.aircraft_id')
-                ->join('air_routes', 'air_routes.id = reservations.route_id')
-                ->join('airports AS from_airport', 'from_airport.id = air_routes.from_airport_id')
-                ->join('airports AS to_airport', 'to_airport.id = air_routes.to_airport_id')
+            'reservations' => service('reservations')->listing(true)
                 ->orderBy('reservations.flight_date', 'DESC')
                 ->orderBy('reservations.id', 'DESC')
                 ->get()
@@ -33,18 +26,11 @@ class Reservations extends BaseController
 
     public function new(): string
     {
-        $points = service('points');
-        $members = [];
-
-        foreach ($this->bookingMembers() as $row) {
-            $members[$row['user_id']] = "{$row['first_name']} {$row['last_name']} [{$row['member_code']}] - {$points->balance((int) $row['user_id'])} pts";
-        }
-
         return view('admin/reservations/form', [
-            'members' => $members,
+            'members' => $this->memberOptions(service('members')->primaryMembers(true), true),
             'routes' => new RouteModel()->labelled(),
             'aircrafts' => new AircraftModel()->menu(),
-            'capacities' => array_column(new AircraftModel()->findAll(), 'passenger_capacity', 'id'),
+            'capacities' => new AircraftModel()->capacities(),
         ]);
     }
 
@@ -60,7 +46,7 @@ class Reservations extends BaseController
         ];
 
         if (!$this->validate($rules)) {
-            return $this->backWithErrors($this->validator?->getErrors() ?? []);
+            return $this->backWithValidationErrors();
         }
 
         try {
@@ -82,14 +68,7 @@ class Reservations extends BaseController
     public function show(int $id): string
     {
         $db = db_connect();
-        $reservation = $db->table('reservations')
-            ->select('reservations.*, members.member_code, profiles.first_name, profiles.last_name, aircrafts.name AS aircraft_name, aircrafts.passenger_capacity AS capacity, from_airport.name AS from_name, to_airport.name AS to_name')
-            ->join('members', 'members.user_id = reservations.user_id')
-            ->join('profiles', 'profiles.user_id = reservations.user_id')
-            ->join('aircrafts', 'aircrafts.id = reservations.aircraft_id')
-            ->join('air_routes', 'air_routes.id = reservations.route_id')
-            ->join('airports AS from_airport', 'from_airport.id = air_routes.from_airport_id')
-            ->join('airports AS to_airport', 'to_airport.id = air_routes.to_airport_id')
+        $reservation = service('reservations')->listing(true)
             ->where('reservations.id', $id)
             ->get()
             ->getRowArray() ?? throw PageNotFoundException::forPageNotFound();
@@ -126,18 +105,5 @@ class Reservations extends BaseController
         }
 
         return $this->back("admin/reservations/{$id}", 'success', $success);
-    }
-
-    private function bookingMembers(): array
-    {
-        return db_connect()->table('members')
-            ->select('members.user_id, members.member_code, profiles.first_name, profiles.last_name')
-            ->join('profiles', 'profiles.user_id = members.user_id')
-            ->where('members.plan_id IS NOT NULL')
-            ->where('members.status', 'active')
-            ->where('members.deleted_at', null)
-            ->orderBy('profiles.last_name')
-            ->get()
-            ->getResultArray();
     }
 }

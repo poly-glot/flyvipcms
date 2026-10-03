@@ -86,4 +86,17 @@ final class MemberServiceTest extends DatabaseTestCase
             'last_name' => 'Member',
         ];
     }
+
+    public function testPrimaryMembersExcludeSubMembersAndFilterByActiveStatus(): void
+    {
+        $parent = $this->member(planId: 2, activate: false);
+        $active = $this->member();
+        service('members')->addSubMember($parent, $this->subData(contactType: 2));
+
+        $all = array_map(intval(...), array_column(service('members')->primaryMembers(), 'user_id'));
+        $activeOnly = array_map(intval(...), array_column(service('members')->primaryMembers(true), 'user_id'));
+
+        $this->assertEqualsCanonicalizing([$parent, $active], $all);
+        $this->assertSame([$active], $activeOnly);
+    }
 }

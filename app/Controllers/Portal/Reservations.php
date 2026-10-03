@@ -17,12 +17,7 @@ class Reservations extends PortalController
         $accountId = $this->accountUserId($member);
         $db = db_connect();
 
-        $own = $db->table('reservations')
-            ->select('reservations.*, aircrafts.name AS aircraft_name, aircrafts.passenger_capacity AS capacity, from_airport.name AS from_name, to_airport.name AS to_name')
-            ->join('aircrafts', 'aircrafts.id = reservations.aircraft_id')
-            ->join('air_routes', 'air_routes.id = reservations.route_id')
-            ->join('airports AS from_airport', 'from_airport.id = air_routes.from_airport_id')
-            ->join('airports AS to_airport', 'to_airport.id = air_routes.to_airport_id')
+        $own = service('reservations')->listing()
             ->where('reservations.user_id', $accountId)
             ->orderBy('reservations.flight_date', 'DESC')
             ->get()
@@ -50,7 +45,7 @@ class Reservations extends PortalController
         return view('portal/reservation_form', [
             'routes' => new RouteModel()->labelled(),
             'aircrafts' => new AircraftModel()->menu(),
-            'capacities' => array_column(new AircraftModel()->findAll(), 'passenger_capacity', 'id'),
+            'capacities' => new AircraftModel()->capacities(),
             'balance' => service('points')->balance((int) auth()->id()),
         ]);
     }
@@ -66,7 +61,7 @@ class Reservations extends PortalController
         ];
 
         if (!$this->validate($rules)) {
-            return $this->backWithErrors($this->validator?->getErrors() ?? []);
+            return $this->backWithValidationErrors();
         }
 
         try {

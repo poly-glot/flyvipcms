@@ -36,7 +36,7 @@ abstract class CrudController extends BaseController
         $data = $this->validated();
 
         if ($data === null) {
-            return $this->backWithErrors($this->validator?->getErrors() ?? []);
+            return $this->backWithValidationErrors();
         }
 
         $this->model()->insert($data);
@@ -55,7 +55,7 @@ abstract class CrudController extends BaseController
         $data = $this->validated();
 
         if ($data === null) {
-            return $this->backWithErrors($this->validator?->getErrors() ?? []);
+            return $this->backWithValidationErrors();
         }
 
         $this->model()->update($id, $data);
@@ -99,12 +99,10 @@ abstract class CrudController extends BaseController
 
             if ($field['type'] === 'checkbox') {
                 $data[$field['name']] = $value === '1' ? 1 : 0;
-            } elseif ($value === null || $value === '') {
-                if ($field['type'] !== 'number') {
-                    $data[$field['name']] = null;
-                }
-            } else {
+            } elseif ($value !== null && $value !== '') {
                 $data[$field['name']] = $value;
+            } elseif ($field['type'] !== 'number') {
+                $data[$field['name']] = null;
             }
         }
 
