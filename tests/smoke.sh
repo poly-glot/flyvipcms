@@ -61,5 +61,12 @@ echo "== banned"
 login banned.member@flyvip.test 'FlyVIP-Banned-2026!'
 expect 302 /portal
 
+echo "== sign out"
+login ana.personal@flyvip.test 'FlyVIP-Personal-2026!'
+token="$(csrf /portal)"
+got="$(curl -s -o /dev/null -w '%{http_code}' -b "$JAR" -c "$JAR" -d "csrf_test_name=$token" "$BASE/logout")"
+[ "$got" = "302" ] || [ "$got" = "303" ] && echo "ok    $got POST /logout" || { echo "FAIL  $got POST /logout"; FAILURES=$((FAILURES + 1)); }
+expect 302 /portal
+
 rm -f "$JAR"
 [ "$FAILURES" -eq 0 ] && echo "ALL OK" || { echo "$FAILURES failure(s)"; exit 1; }

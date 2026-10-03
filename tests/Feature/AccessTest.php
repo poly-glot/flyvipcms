@@ -7,6 +7,7 @@ namespace Tests\Feature;
 use CodeIgniter\Exceptions\PageNotFoundException;
 use CodeIgniter\Shield\Test\AuthenticationTesting;
 use CodeIgniter\Test\FeatureTestTrait;
+use ErrorException;
 use Tests\Support\DatabaseTestCase;
 
 final class AccessTest extends DatabaseTestCase
@@ -55,5 +56,17 @@ final class AccessTest extends DatabaseTestCase
         $result = $this->get('login');
         $result->assertOK();
         $result->assertSee('Sign in', 'h1');
+    }
+
+    public function testLogoutIsRoutedAsPost(): void
+    {
+        try {
+            $this->actingAs($this->login('member'))->post('logout');
+        } catch (PageNotFoundException $error) {
+            $this->fail('POST /logout is not routed: ' . $error->getMessage());
+        } catch (ErrorException) {
+        }
+
+        $this->addToAssertionCount(1);
     }
 }

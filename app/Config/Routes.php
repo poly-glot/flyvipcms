@@ -7,7 +7,8 @@ use CodeIgniter\Router\RouteCollection;
 /* @var RouteCollection $routes */
 $routes->get('/', 'Home::index');
 
-service('auth')->routes($routes, ['except' => ['register', 'magic-link']]);
+service('auth')->routes($routes, ['except' => ['register', 'magic-link', 'logout']]);
+$routes->post('logout', '\CodeIgniter\Shield\Controllers\LoginController::logoutAction');
 
 $routes->get('account/password', 'Account::password', ['filter' => 'session']);
 $routes->post('account/password', 'Account::updatePassword', ['filter' => 'session']);
