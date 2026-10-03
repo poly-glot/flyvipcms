@@ -17,7 +17,7 @@
     const remember = (state) => {
         try {
             localStorage.setItem(storageKey, state);
-        } catch (error) {
+        } catch {
             return;
         }
     };

@@ -184,7 +184,10 @@
     gap: 2px;
     min-height: 64px;
     padding: var(--space-3) var(--space-4);
-    transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+    transition:
+        background 140ms ease,
+        border-color 140ms ease,
+        box-shadow 140ms ease;
 }
 
 .choice:hover .choice__body {
@@ -240,7 +243,7 @@
     background: var(--panel);
     border: 2px solid var(--accent);
     border-radius: 50%;
-    content: "";
+    content: '';
     height: 10px;
     left: calc(var(--space-5) * -1 - 5.5px);
     position: absolute;
@@ -267,17 +270,17 @@
     grid-template-columns: minmax(0, 360px);
 }
 
-@media (max-width: 1080px) {
+@media (width <= 1080px) {
     .detail {
         gap: var(--space-6);
         grid-template-columns: minmax(0, 1fr);
     }
 }
 
-@media (max-width: 760px) {
+@media (width <= 760px) {
     .row--member {
         gap: var(--space-2) var(--space-3);
-        grid-template-areas: "avatar identity status" "avatar plan points";
+        grid-template-areas: 'avatar identity status' 'avatar plan points';
         grid-template-columns: 40px minmax(0, 1fr) auto;
     }
 
@@ -298,7 +301,7 @@
         grid-area: plan;
     }
 
-    .row--member > .row__metric:not(.row__metric--plan):not(.row__metric--due) {
+    .row--member > .row__metric:not(.row__metric--plan, .row__metric--due) {
         grid-area: points;
         justify-items: end;
     }

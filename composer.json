@@ -46,12 +46,16 @@
     "test": "phpunit",
     "test-coverage": "phpunit --coverage-text",
     "coverage-gate": "php tests/coverage-gate.php 55",
+    "lint-frontend": "npm run lint --silent",
+    "e2e": "npm run test:e2e",
+    "visual": "npm run test:visual",
     "quality": [
       "@cs-check",
       "@phpstan",
       "@rector-dry",
       "@test",
-      "@coverage-gate"
+      "@coverage-gate",
+      "@lint-frontend"
     ]
   }
 }

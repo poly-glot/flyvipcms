@@ -11,7 +11,7 @@ foreach (['success' => 'ok', 'message' => 'ok', 'error' => 'bad'] as $key => $to
 ?>
 <div class="toasts" data-toasts aria-live="polite">
     <?php foreach ($toasts as [$tone, $message]): ?>
-        <div class="toast toast--<?= $tone ?>" role="<?= $tone === 'bad' ? 'alert' : 'status' ?>" data-toast data-sticky="<?= $tone === 'bad' ? 'true' : 'false' ?>">
+        <div class="toast toast--<?= esc($tone) ?>" role="<?= $tone === 'bad' ? 'alert' : 'status' ?>" data-toast data-sticky="<?= $tone === 'bad' ? 'true' : 'false' ?>">
             <?= ui_icon($tone === 'bad' ? 'alert' : 'check') ?>
             <p><?= esc($message) ?></p>
             <button type="button" data-toast-close aria-label="Dismiss"><?= ui_icon('x', 'icon icon--sm') ?></button>

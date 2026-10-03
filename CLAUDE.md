@@ -8,6 +8,8 @@ CodeIgniter 4.7 / PHP 8.4 / MySQL 8.4 / Shield. Rebuild of the 2015 CI3 FlyVIP m
 - `php spark migrate --all` — applies app **and** vendor (Shield, Settings) migrations; always `--all`.
 - `php spark db:seed DemoSeeder` — local demo data. Throws when `ENVIRONMENT === 'production'`.
 - `php spark app:create-admin <username> <email>` — password from `ADMIN_PASSWORD` or prompt (min 12 chars).
+- `npm run lint` — Prettier (`printWidth 120`, single quotes, 4 spaces), ESLint, Stylelint, `tools/check-templates.php`. Part of `composer quality`.
+- `npm run test:e2e` / `npm run test:visual` — Playwright; `E2E_SERVE=1` makes it start its own `php spark serve` on :8081 so the app's base URL matches the browser's.
 - `tests/smoke.sh` — walks every page as every role against `BASE_URL` (default `http://127.0.0.1:8090`).
 
 ## Code rules
@@ -17,6 +19,27 @@ CodeIgniter 4.7 / PHP 8.4 / MySQL 8.4 / Shield. Rebuild of the 2015 CI3 FlyVIP m
 - Property order in CSS is alphabetical. Styles live in `public/css/*.css` (tokens, ui, shell, then one file per feature: auth, people, dashboard, flights, ledger); no CDN assets, no build step. Views share the `layouts/shell` app shell and the `ui_*` helpers in `app/Helpers/ui_helper.php`; flash messages render as toasts, validation errors inline next to fields.
 - Controllers stay thin: validation → one service call → redirect. Business rules live in `app/Services` and `app/Domain`.
 - Every admin write is a POST behind the CSRF filter; deletes are POSTs too (legacy used GET).
+
+## Frontend rules and how they are enforced
+
+| Rule | Enforced by |
+|---|---|
+| No comments in CSS, JS, TS | Stylelint plugin `tools/stylelint-no-comments.mjs`; ESLint rule `flyvip/no-comments` in `eslint.config.js` |
+| No comments in PHP or views (PHP, docblocks, HTML `<!-- -->`) | `tools/check-templates.php` (PHP tokenizer). Exempt: `app/Config`, `app/Language`, `app/Views/errors`, `app/Common.php` — framework-generated |
+| CSS properties alphabetical | `order/properties-alphabetical-order` |
+| Colours only from tokens (`public/css/tokens.css`) | `color-no-hex` everywhere except `tokens.css`; `tools/check-templates.php` bans hex in templates |
+| BEM kebab-case classes, no `!important` | `selector-class-pattern`, `declaration-no-important` (the `[hidden]` and reduced-motion `!important`s in `tokens.css` are the only exemption) |
+| No inline `style=` or `on*=` handlers in templates | `tools/check-templates.php` (inline `style` allowed only in `partials/icons.php`) |
+| Escape output | `tools/check-templates.php` flags a bare `<?= $var ?>`; use `esc()` or a `ui_*` helper |
+| `$this->include()` never takes data (CI4 ignores it) | `tools/check-templates.php`; use `view('partial', $data)` |
+| No `alert`/`console`/`eval`/`innerHTML =` in JS | ESLint |
+| WCAG 2.2 AA on every page, every role, light and dark | `tests/E2E/a11y.spec.ts` (axe-core). Automated axe catches only part of AA; keyboard and screen-reader checks stay manual |
+| Layout, nav, seat map, dialogs, sign-in/out work in a real browser | `tests/E2E/flows.spec.ts` |
+| Visual regressions | `tests/E2E/visual.spec.ts` — **report-only**: captures 3 widths × light/dark of every page as artifacts, never fails the build. Pixel baselines are not committed because renders differ across machines |
+
+Nav highlighting (`ui_is_current`) matches exact paths for the `admin` and `portal` roots and prefixes for everything else; a prefix match on the roots marks Dashboard as current on every admin page (`NavigationTest` and the E2E sidebar test guard this).
+
+The devcontainer mounts a named volume over `node_modules`. Sharing it with the host through the bind mount corrupted installs (Linux and macOS binaries, and stale bind-mount files).
 
 ## Architecture
 

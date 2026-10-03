@@ -55,7 +55,7 @@ $icons = ['Active members' => 'users', 'Sub-members' => 'user', 'Upcoming flight
                                 <span class="row__title"><?= esc($member['first_name'] . ' ' . $member['last_name']) ?></span>
                                 <span class="row__sub"><?= esc($member['member_code']) ?>, due <?= esc(ui_date($member['next_due_on'])) ?></span>
                             </span>
-                            <span class="pill pill--overdue pill--plain"><?= $days ?> <?= $days === 1 ? 'day' : 'days' ?></span>
+                            <span class="pill pill--overdue pill--plain"><?= esc($days) ?> <?= $days === 1 ? 'day' : 'days' ?></span>
                         </a>
                     </li>
                 <?php endforeach ?>

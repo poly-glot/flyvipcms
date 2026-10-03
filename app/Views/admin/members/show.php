@@ -51,7 +51,7 @@
                     <?= view('partials/empty', ['icon' => 'plane', 'title' => 'No flights yet', 'text' => 'Book a flight for this member and it will show up here.', 'actionUrl' => site_url('admin/reservations/new'), 'actionLabel' => 'New reservation']) ?>
                 </section>
             <?php else: ?>
-                <?= $flights ?>
+                <?= esc($flights) ?>
             <?php endif ?>
 
             <section class="page-section">

@@ -20,6 +20,7 @@ services:
       - "127.0.0.1:8090:8080"
     volumes:
       - ..:/workspaces/flyvipcms:cached
+      - node-modules:/workspaces/flyvipcms/node_modules
 
   db:
     environment:
@@ -39,3 +40,4 @@ services:
 
 volumes:
   mysql-data:
+  node-modules:

@@ -1,7 +1,6 @@
 # FlyVIP CMS
 
-Private-jet membership CMS rebuilt on CodeIgniter 4.7 (PHP 8.4, MySQL 8.4, Shield for auth).
-Replaces the 2015 CodeIgniter 3 application. Deploys to Cloud Run behind Firebase Hosting with the shared OCI HeatWave MySQL, following the `firebase-cloud` conventions used by `cms` and `careerpost`.
+Private-jet membership CMS built on CodeIgniter 4.7 (PHP 8.4, MySQL 8.4, Shield for auth). Deploys to Cloud Run behind Firebase Hosting with the shared OCI HeatWave MySQL, following the `firebase-cloud` .
 
 ## Run it locally (devcontainer)
 
@@ -27,13 +26,19 @@ Inside the container: `php spark serve --host 0.0.0.0 --port 8080` is started by
 ## Quality gates
 
 ```bash
-composer quality     # php-cs-fixer (dry-run) → PHPStan level 8 → Rector (dry-run) → PHPUnit → coverage floor
-composer cs-fix      # apply formatting
+composer quality     # php-cs-fixer → PHPStan level 8 → Rector → PHPUnit → coverage floor → frontend lint
+composer cs-fix      # apply PHP formatting
 composer rector      # apply Rector
+npm run lint         # Prettier, ESLint, Stylelint, template checks (also part of composer quality)
+npm run lint:fix     # auto-fix what the linters can
+npm run test:e2e     # Playwright: sign-in/out, seat map, dialogs, axe WCAG AA in light + dark (starts its own server on :8081)
+npm run test:visual  # report-only: screenshots of every page, 3 widths × light/dark → test-results/visual/
 tests/smoke.sh       # HTTP smoke test of every page for every role against a running server
 ```
 
-CI (`.github/workflows/ci.yml`) runs `composer audit`, `composer validate --strict`, `composer quality` against a MySQL 8.4 service, then builds the production image.
+Frontend checks inside the devcontainer use their own `node_modules` volume (the host's `node_modules` is never shared with the container). From the host, `npm run test:e2e:running` targets an already running app at `E2E_BASE_URL` (default `http://localhost:8090`).
+
+CI (`.github/workflows/ci.yml`) runs `composer audit`, `composer validate --strict` and `composer quality` against a MySQL 8.4 service; then, in parallel, the blocking `e2e` job (Playwright + axe), the non-blocking `visual` job (screenshots uploaded as an artifact) and the production image build.
 
 ## Areas
 

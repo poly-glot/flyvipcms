@@ -56,10 +56,12 @@
 
 .balance {
     align-items: center;
-    background: radial-gradient(90% 140% at 100% 0%, #2b2f8f 0%, transparent 65%), linear-gradient(160deg, #161c52 0%, var(--night) 75%);
+    background:
+        radial-gradient(90% 140% at 100% 0%, var(--hero-start) 0%, transparent 65%),
+        linear-gradient(160deg, var(--hero-end) 0%, var(--night) 75%);
     border-radius: var(--radius-card);
     box-shadow: var(--shadow-card);
-    color: #eef0ff;
+    color: var(--on-hero);
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-5);
@@ -73,7 +75,7 @@
 }
 
 .balance__label {
-    color: #b9bff0;
+    color: var(--on-hero-muted);
     font-size: 0.875rem;
 }
 
@@ -87,7 +89,7 @@
 
 .balance__meta {
     align-items: center;
-    color: #b9bff0;
+    color: var(--on-hero-muted);
     display: flex;
     flex-wrap: wrap;
     font-size: 0.875rem;
@@ -96,15 +98,15 @@
 
 .balance .pill {
     background: rgb(255 255 255 / 14%);
-    color: #fff;
+    color: var(--white);
 }
 
 .balance__trend .sparkline__line {
-    stroke: #aab0ff;
+    stroke: var(--on-hero-accent);
 }
 
 .balance__trend .sparkline__area {
-    fill: #aab0ff;
+    fill: var(--on-hero-accent);
     opacity: 0.16;
 }
 
@@ -114,14 +116,14 @@
     margin-top: var(--space-6);
 }
 
-@media (max-width: 1080px) {
+@media (width <= 1080px) {
     .split {
         gap: var(--space-6);
         grid-template-columns: minmax(0, 1fr);
     }
 }
 
-@media (max-width: 760px) {
+@media (width <= 760px) {
     .balance {
         padding: var(--space-5);
     }

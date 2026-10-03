@@ -6,8 +6,10 @@
 }
 
 .gate__hero {
-    background: radial-gradient(120% 80% at 80% 0%, #2b2f8f 0%, transparent 60%), linear-gradient(160deg, #141a4a 0%, var(--night) 70%);
-    color: #eef0ff;
+    background:
+        radial-gradient(120% 80% at 80% 0%, var(--hero-start) 0%, transparent 60%),
+        linear-gradient(160deg, var(--hero-end) 0%, var(--night) 70%);
+    color: var(--on-hero);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -18,21 +20,21 @@
 
 .brand--light,
 .brand--light:hover {
-    color: #fff;
+    color: var(--white);
     position: relative;
     z-index: 1;
 }
 
 .brand--light .brand__mark rect {
-    fill: #fff;
+    fill: var(--white);
 }
 
 .brand--light .brand__mark path:first-of-type {
-    fill: #141a4a;
+    fill: var(--hero-end);
 }
 
 .brand--light .brand__mark path:last-of-type {
-    stroke: #fff;
+    stroke: var(--white);
 }
 
 .gate__trails {
@@ -44,7 +46,7 @@
 
 .gate__trails path {
     fill: none;
-    stroke: #aab0ff;
+    stroke: var(--on-hero-accent);
     stroke-linecap: round;
     stroke-opacity: 0.35;
     stroke-width: 1.5;
@@ -60,8 +62,8 @@
 }
 
 .gate__trails circle {
-    fill: #fff;
-    filter: drop-shadow(0 0 8px #aab0ff);
+    fill: var(--white);
+    filter: drop-shadow(0 0 8px var(--on-hero-accent));
 }
 
 .gate__pitch {
@@ -79,7 +81,7 @@
 }
 
 .gate__pitch p {
-    color: #c3c8f2;
+    color: var(--on-hero-muted);
     font-size: 1.0625rem;
     margin-top: var(--space-4);
     max-width: 36ch;
@@ -125,7 +127,7 @@
     margin-bottom: 0;
 }
 
-@media (max-width: 860px) {
+@media (width <= 860px) {
     .gate {
         grid-template-columns: minmax(0, 1fr);
         grid-template-rows: auto 1fr;

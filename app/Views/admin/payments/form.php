@@ -16,7 +16,7 @@
                 <select id="f_member" name="user_id" data-autosubmit>
                     <option value="">Select a member</option>
                     <?php foreach ($members as $id => $label): ?>
-                        <option value="<?= $id ?>" <?= $selected === (int) $id ? 'selected' : '' ?>><?= esc($label) ?></option>
+                        <option value="<?= esc($id) ?>" <?= $selected === (int) $id ? 'selected' : '' ?>><?= esc($label) ?></option>
                     <?php endforeach ?>
                 </select>
             </div>
@@ -28,7 +28,7 @@
 <?php if ($selected > 0): ?>
     <form class="form" method="post" action="<?= site_url('admin/payments') ?>">
         <?= csrf_field() ?>
-        <input type="hidden" name="user_id" value="<?= $selected ?>">
+        <input type="hidden" name="user_id" value="<?= esc($selected) ?>">
         <section class="form-section">
             <div class="form-section__intro">
                 <h2>Payment type</h2>

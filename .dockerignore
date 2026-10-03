@@ -13,3 +13,14 @@ writable/*
 Dockerfile
 .dockerignore
 docker-compose.yml
+node_modules
+playwright-report
+test-results
+tools
+package.json
+package-lock.json
+playwright.config.ts
+eslint.config.js
+.stylelintrc.json
+.prettierrc
+.prettierignore

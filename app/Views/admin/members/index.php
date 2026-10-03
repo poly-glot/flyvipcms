@@ -24,7 +24,7 @@ $statusCounts = array_count_values(array_column($members, 'status'));
             <div class="chips" role="group" aria-label="Filter by status">
                 <button class="chip" type="button" data-filter-chip="" aria-pressed="true">All<small><?= count($members) ?></small></button>
                 <?php foreach (['active', 'inactive', 'banned'] as $status): ?>
-                    <button class="chip" type="button" data-filter-chip="<?= $status ?>" aria-pressed="false"><?= ucfirst($status) ?><small><?= (int) ($statusCounts[$status] ?? 0) ?></small></button>
+                    <button class="chip" type="button" data-filter-chip="<?= esc($status) ?>" aria-pressed="false"><?= ucfirst($status) ?><small><?= (int) ($statusCounts[$status] ?? 0) ?></small></button>
                 <?php endforeach ?>
             </div>
         </div>

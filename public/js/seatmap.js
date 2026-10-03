@@ -59,7 +59,11 @@
                     row.append(Object.assign(document.createElement('span'), { className: 'cabin__aisle' }));
                 }
 
-                row.append(number <= capacity ? makeSeat(number) : Object.assign(document.createElement('span'), { className: 'cabin__gap' }));
+                row.append(
+                    number <= capacity
+                        ? makeSeat(number)
+                        : Object.assign(document.createElement('span'), { className: 'cabin__gap' }),
+                );
             }
 
             rows.push(row);
@@ -72,7 +76,11 @@
         const reserved = new Set(parseSeats(root.dataset.selected));
         const capacity = Number(root.dataset.capacity || 0);
 
-        grid.replaceChildren(...cabinRows(capacity, (number) => seatElement({ number, taken: false, selected: reserved.has(number), interactive: false })));
+        grid.replaceChildren(
+            ...cabinRows(capacity, (number) =>
+                seatElement({ number, taken: false, selected: reserved.has(number), interactive: false }),
+            ),
+        );
 
         return;
     }
@@ -118,7 +126,11 @@
             }
         });
 
-        grid.replaceChildren(...cabinRows(capacity(), (number) => seatElement({ number, taken: taken.has(number), selected: selected.has(number), interactive: true })));
+        grid.replaceChildren(
+            ...cabinRows(capacity(), (number) =>
+                seatElement({ number, taken: taken.has(number), selected: selected.has(number), interactive: true }),
+            ),
+        );
         describe();
     };
 
@@ -131,10 +143,13 @@
             const query = new URLSearchParams({ aircraft_id: aircraft.value, flight_date: date.value });
 
             try {
-                const response = await fetch(`${root.dataset.url}?${query}`, { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+                const response = await fetch(`${root.dataset.url}?${query}`, {
+                    credentials: 'same-origin',
+                    headers: { Accept: 'application/json' },
+                });
                 const body = await response.json();
                 taken = new Set(body.taken || []);
-            } catch (error) {
+            } catch {
                 taken = new Set();
             }
         }

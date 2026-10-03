@@ -13,12 +13,12 @@ $tag = $href === '' ? 'span' : 'a';
     </time>
     <div class="flight__main">
         <h3 class="flight__route">
-            <<?= $tag ?> class="flight__link"<?= $href === '' ? '' : ' href="' . esc($href, 'attr') . '"' ?>>
+            <<?= esc($tag) ?> class="flight__link"<?= $href === '' ? '' : ' href="' . esc($href, 'attr') . '"' ?>>
                 <span class="flight__place"><?= esc($reservation['from_name']) ?></span>
                 <span class="flight__path" aria-hidden="true"><?= ui_icon('plane', 'icon icon--sm') ?></span>
                 <span class="sr-only">to</span>
                 <span class="flight__place"><?= esc($reservation['to_name']) ?></span>
-            </<?= $tag ?>>
+            </<?= esc($tag) ?>>
         </h3>
         <p class="flight__meta">
             <span><?= ui_icon('plane', 'icon icon--sm') ?><?= esc($reservation['aircraft_name']) ?></span>

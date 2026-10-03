@@ -45,6 +45,11 @@ jobs:
           php-version: '8.4'
           tools: composer:v2
 
+      - uses: actions/setup-node@v4
+        with:
+          cache: npm
+          node-version: '22'
+
       - id: composer-cache
         run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
 
@@ -56,11 +61,130 @@ jobs:
 
       - run: composer install --no-interaction --prefer-dist
 
+      - run: npm ci --no-audit --no-fund
+
       - run: composer audit
 
       - run: composer validate --strict
 
       - run: composer quality
+
+  e2e:
+    needs: quality
+    runs-on: ubuntu-24.04
+    services:
+      db:
+        image: mysql:8.4
+        env:
+          MYSQL_DATABASE: flyvip
+          MYSQL_PASSWORD: flyvip
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_USER: flyvip
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=5s
+          --health-retries=20
+          --health-timeout=5s
+        ports:
+          - 3306:3306
+    env:
+      CI_ENVIRONMENT: development
+      DB_HOST: 127.0.0.1
+      DB_NAME: flyvip
+      DB_PASS: flyvip
+      DB_USER: flyvip
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          extensions: bcmath, gd, intl, mbstring, mysqli, zip
+          php-version: '8.4'
+          tools: composer:v2
+
+      - uses: actions/setup-node@v4
+        with:
+          cache: npm
+          node-version: '22'
+
+      - run: composer install --no-interaction --prefer-dist
+
+      - run: npm ci --no-audit --no-fund
+
+      - run: npx playwright install --with-deps chromium
+
+      - run: php spark migrate --all
+
+      - run: php spark db:seed DemoSeeder
+
+      - run: npm run test:e2e
+
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/artifacts/
+          retention-days: 7
+
+  visual:
+    needs: quality
+    continue-on-error: true
+    runs-on: ubuntu-24.04
+    services:
+      db:
+        image: mysql:8.4
+        env:
+          MYSQL_DATABASE: flyvip
+          MYSQL_PASSWORD: flyvip
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_USER: flyvip
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=5s
+          --health-retries=20
+          --health-timeout=5s
+        ports:
+          - 3306:3306
+    env:
+      CI_ENVIRONMENT: development
+      DB_HOST: 127.0.0.1
+      DB_NAME: flyvip
+      DB_PASS: flyvip
+      DB_USER: flyvip
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          extensions: bcmath, gd, intl, mbstring, mysqli, zip
+          php-version: '8.4'
+          tools: composer:v2
+
+      - uses: actions/setup-node@v4
+        with:
+          cache: npm
+          node-version: '22'
+
+      - run: composer install --no-interaction --prefer-dist
+
+      - run: npm ci --no-audit --no-fund
+
+      - run: npx playwright install --with-deps chromium
+
+      - run: php spark migrate --all
+
+      - run: php spark db:seed DemoSeeder
+
+      - run: npm run test:visual
+
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-screenshots
+          path: test-results/visual/
+          retention-days: 14
 
   image:
     needs: quality

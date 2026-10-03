@@ -266,6 +266,10 @@ if (!function_exists('ui_is_current')) {
     {
         $current = uri_string();
 
+        if (in_array($path, ['admin', 'portal'], true)) {
+            return $current === $path;
+        }
+
         return $current === $path || str_starts_with($current, $path . '/');
     }
 }
