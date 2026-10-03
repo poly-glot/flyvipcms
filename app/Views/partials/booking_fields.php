@@ -1,27 +1,30 @@
-<label>Route
-    <select name="route_id" required>
-        <?php foreach ($routes as $id => $label): ?>
-            <option value="<?= $id ?>" <?= (string) old('route_id') === (string) $id ? 'selected' : '' ?>><?= esc($label) ?></option>
-        <?php endforeach ?>
-    </select>
-</label>
-<label>Aircraft
-    <select name="aircraft_id" required data-capacities="<?= esc(json_encode($capacities), 'attr') ?>">
-        <?php foreach ($aircrafts as $id => $label): ?>
-            <option value="<?= $id ?>" <?= (string) old('aircraft_id') === (string) $id ? 'selected' : '' ?>><?= esc($label) ?></option>
-        <?php endforeach ?>
-    </select>
-</label>
-<label>Flight date<input type="date" name="flight_date" min="<?= date('Y-m-d') ?>" value="<?= esc(old('flight_date')) ?>" required></label>
-<label>Reservation type
-    <select name="kind" required>
-        <option value="partial" <?= old('kind') === 'partial' ? 'selected' : '' ?>>Partial (shared flight, choose seats)</option>
-        <option value="complete" <?= old('kind') === 'complete' ? 'selected' : '' ?>>Complete (whole aircraft)</option>
-    </select>
-</label>
-<fieldset class="full seats" data-seats>
-    <legend>Seats (partial only)</legend>
-    <?php foreach (range(1, 12) as $seat): ?>
-        <label class="check seat" data-seat="<?= $seat ?>"><input type="checkbox" name="seats[]" value="<?= $seat ?>" <?= in_array((string) $seat, (array) old('seats', []), true) ? 'checked' : '' ?>> <?= $seat ?></label>
-    <?php endforeach ?>
-</fieldset>
+<section class="form-section">
+    <div class="form-section__intro">
+        <h2>Flight</h2>
+        <p>Pick the route, the aircraft and the day you want to fly.</p>
+    </div>
+    <div class="fields">
+        <?= ui_select('route_id', 'Route', $routes, null, ['field_class' => 'field--full', 'required' => true]) ?>
+        <?= ui_select('aircraft_id', 'Aircraft', $aircrafts, null, ['data-capacities' => json_encode($capacities), 'required' => true]) ?>
+        <?= ui_field('flight_date', 'Flight date', 'date', null, ['min' => date('Y-m-d'), 'required' => true]) ?>
+    </div>
+</section>
+<section class="form-section">
+    <div class="form-section__intro">
+        <h2>Seats</h2>
+        <p>Complete takes the whole aircraft. Partial shares it, and you choose your seats.</p>
+    </div>
+    <div class="booking-seats">
+        <?= ui_segmented('kind', 'Reservation type', ['partial' => 'Partial', 'complete' => 'Complete'], (string) old('kind', 'partial')) ?>
+        <p class="booking-seats__note" data-complete-note hidden>Every seat on this aircraft is reserved for you and your guests.</p>
+        <div class="seatmap" data-seatmap data-url="<?= site_url('flights/taken-seats') ?>" data-selected="<?= esc(implode(',', (array) old('seats', [])), 'attr') ?>">
+            <div class="seatmap__legend" aria-hidden="true">
+                <span><i class="seat-key"></i>Available</span>
+                <span><i class="seat-key seat-key--selected"></i>Yours</span>
+                <span><i class="seat-key seat-key--taken"></i>Taken</span>
+            </div>
+            <div class="cabin" data-seatmap-grid role="group" aria-label="Seat map"></div>
+            <p class="seatmap__status" data-seatmap-status aria-live="polite">Choose an aircraft to see its seats.</p>
+        </div>
+    </div>
+</section>

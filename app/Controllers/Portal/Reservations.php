@@ -18,7 +18,7 @@ class Reservations extends PortalController
         $db = db_connect();
 
         $own = $db->table('reservations')
-            ->select('reservations.*, aircrafts.name AS aircraft_name, from_airport.name AS from_name, to_airport.name AS to_name')
+            ->select('reservations.*, aircrafts.name AS aircraft_name, aircrafts.passenger_capacity AS capacity, from_airport.name AS from_name, to_airport.name AS to_name')
             ->join('aircrafts', 'aircrafts.id = reservations.aircraft_id')
             ->join('air_routes', 'air_routes.id = reservations.route_id')
             ->join('airports AS from_airport', 'from_airport.id = air_routes.from_airport_id')

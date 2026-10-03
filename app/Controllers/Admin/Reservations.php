@@ -17,7 +17,7 @@ class Reservations extends BaseController
     {
         return view('admin/reservations/index', [
             'reservations' => db_connect()->table('reservations')
-                ->select('reservations.*, members.member_code, profiles.first_name, profiles.last_name, aircrafts.name AS aircraft_name, from_airport.name AS from_name, to_airport.name AS to_name')
+                ->select('reservations.*, members.member_code, profiles.first_name, profiles.last_name, aircrafts.name AS aircraft_name, aircrafts.passenger_capacity AS capacity, from_airport.name AS from_name, to_airport.name AS to_name')
                 ->join('members', 'members.user_id = reservations.user_id')
                 ->join('profiles', 'profiles.user_id = reservations.user_id')
                 ->join('aircrafts', 'aircrafts.id = reservations.aircraft_id')
@@ -82,7 +82,17 @@ class Reservations extends BaseController
     public function show(int $id): string
     {
         $db = db_connect();
-        $reservation = $db->table('reservations')->where('id', $id)->get()->getRowArray() ?? throw PageNotFoundException::forPageNotFound();
+        $reservation = $db->table('reservations')
+            ->select('reservations.*, members.member_code, profiles.first_name, profiles.last_name, aircrafts.name AS aircraft_name, aircrafts.passenger_capacity AS capacity, from_airport.name AS from_name, to_airport.name AS to_name')
+            ->join('members', 'members.user_id = reservations.user_id')
+            ->join('profiles', 'profiles.user_id = reservations.user_id')
+            ->join('aircrafts', 'aircrafts.id = reservations.aircraft_id')
+            ->join('air_routes', 'air_routes.id = reservations.route_id')
+            ->join('airports AS from_airport', 'from_airport.id = air_routes.from_airport_id')
+            ->join('airports AS to_airport', 'to_airport.id = air_routes.to_airport_id')
+            ->where('reservations.id', $id)
+            ->get()
+            ->getRowArray() ?? throw PageNotFoundException::forPageNotFound();
 
         return view('admin/reservations/show', [
             'reservation' => $reservation,

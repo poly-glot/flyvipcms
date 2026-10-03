@@ -1,19 +1,25 @@
-<?= $this->extend('layouts/admin') ?>
+<?= $this->extend('layouts/shell') ?>
+
+<?= $this->section('title') ?>Transfer points<?= $this->endSection() ?>
+<?= $this->section('subtitle') ?>Move points from one member to another.<?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
-<div class="head"><h1>Transfer points</h1></div>
-<form class="grid" method="post" action="<?= site_url('admin/points/transfer') ?>">
+<form class="form" method="post" action="<?= site_url('admin/points/transfer') ?>">
     <?= csrf_field() ?>
-    <?php foreach (['sender_id' => 'From member', 'receiver_id' => 'To member'] as $name => $label): ?>
-        <label><?= $label ?>
-            <select name="<?= $name ?>" required>
-                <?php foreach ($members as $id => $text): ?>
-                    <option value="<?= $id ?>" <?= (string) old($name) === (string) $id ? 'selected' : '' ?>><?= esc($text) ?></option>
-                <?php endforeach ?>
-            </select>
-        </label>
-    <?php endforeach ?>
-    <label>Points<input type="number" step="0.01" min="0.01" name="amount" value="<?= esc(old('amount')) ?>" required></label>
-    <div class="full"><button type="submit">Transfer</button> <a href="<?= site_url('admin/points') ?>">Cancel</a></div>
+    <section class="form-section">
+        <div class="form-section__intro">
+            <h2>Transfer</h2>
+            <p>The sender must have enough points to cover it.</p>
+        </div>
+        <div class="fields">
+            <?= ui_select('sender_id', 'From member', $members, null, ['required' => true]) ?>
+            <?= ui_select('receiver_id', 'To member', $members, null, ['required' => true]) ?>
+            <?= ui_field('amount', 'Points', 'number', null, ['min' => '0.01', 'required' => true, 'step' => '0.01']) ?>
+        </div>
+    </section>
+    <div class="form-actions">
+        <button class="button" type="submit">Transfer points</button>
+        <a class="button button--quiet" href="<?= site_url('admin/points') ?>">Cancel</a>
+    </div>
 </form>
 <?= $this->endSection() ?>

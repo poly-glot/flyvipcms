@@ -14,7 +14,7 @@ CodeIgniter 4.7 / PHP 8.4 / MySQL 8.4 / Shield. Rebuild of the 2015 CI3 FlyVIP m
 
 - No comments of any kind. Names carry intent; WHY lives in this file.
 - Shared types are declared once; services take and return scalars/arrays, money is a `string` (see below).
-- Property order in CSS is alphabetical. Styles live in `public/css/app.css` only (no CDN assets).
+- Property order in CSS is alphabetical. Styles live in `public/css/*.css` (tokens, ui, shell, then one file per feature: auth, people, dashboard, flights, ledger); no CDN assets, no build step. Views share the `layouts/shell` app shell and the `ui_*` helpers in `app/Helpers/ui_helper.php`; flash messages render as toasts, validation errors inline next to fields.
 - Controllers stay thin: validation → one service call → redirect. Business rules live in `app/Services` and `app/Domain`.
 - Every admin write is a POST behind the CSRF filter; deletes are POSTs too (legacy used GET).
 

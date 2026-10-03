@@ -1,39 +1,32 @@
-<?= $this->extend('layouts/admin') ?>
+<?= $this->extend('layouts/shell') ?>
+
+<?php
+$columns = array_values(array_filter($fields, static fn (array $f): bool => ($f['list'] ?? true) && $f['type'] !== 'textarea'));
+$heading = ui_nav_label("admin/{$slug}", $title . 's');
+$presenter = $slug === 'pilots' ? 'admin/crud/rows_pilots' : 'admin/crud/rows_table';
+?>
+<?= $this->section('title') ?><?= esc($heading) ?><?= $this->endSection() ?>
+<?= $this->section('subtitle') ?><?= count($rows) ?> <?= count($rows) === 1 ? 'record' : 'records' ?><?= $this->endSection() ?>
+<?= $this->section('actions') ?>
+<a class="button" href="<?= site_url("admin/{$slug}/new") ?>"><?= ui_icon('plus', 'icon icon--sm') ?>Add <?= esc(strtolower($title)) ?></a>
+<?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
-<?php $columns = array_values(array_filter($fields, static fn (array $f): bool => ($f['list'] ?? true) && $f['type'] !== 'textarea')); ?>
-<div class="head">
-    <h1><?= esc($title) ?>s</h1>
-    <a class="button" href="<?= site_url("admin/{$slug}/new") ?>">Add</a>
-</div>
-<table>
-    <thead>
-        <tr>
-            <?php foreach ($columns as $column): ?>
-                <th><?= esc($column['label']) ?></th>
-            <?php endforeach ?>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        <?php foreach ($rows as $row): ?>
-            <tr>
-                <?php foreach ($columns as $column): ?>
-                    <?php $cell = $row[$column['name']] ?? ''; ?>
-                    <td><?= esc($column['type'] === 'select' ? ($column['options'][$cell] ?? '') : ($column['type'] === 'checkbox' ? ((int) $cell === 1 ? 'Yes' : 'No') : $cell)) ?></td>
-                <?php endforeach ?>
-                <td class="actions">
-                    <a href="<?= site_url("admin/{$slug}/{$row['id']}/edit") ?>">Edit</a>
-                    <form method="post" action="<?= site_url("admin/{$slug}/{$row['id']}/delete") ?>" onsubmit="return confirm('Delete this record?')">
-                        <?= csrf_field() ?>
-                        <button type="submit" class="link danger">Delete</button>
-                    </form>
-                </td>
-            </tr>
-        <?php endforeach ?>
-        <?php if ($rows === []): ?>
-            <tr><td colspan="<?= count($columns) + 1 ?>" class="muted">Nothing here yet.</td></tr>
-        <?php endif ?>
-    </tbody>
-</table>
+<?php if ($rows === []): ?>
+    <?= view('partials/empty', ['icon' => 'inbox', 'title' => 'Nothing here yet', 'text' => 'Add the first ' . strtolower($title) . ' to get started.', 'actionUrl' => site_url("admin/{$slug}/new"), 'actionLabel' => 'Add ' . strtolower($title)]) ?>
+<?php else: ?>
+    <div data-filter>
+        <div class="toolbar">
+            <label class="search">
+                <span class="sr-only">Search <?= esc(strtolower($heading)) ?></span>
+                <?= ui_icon('search', 'icon icon--sm') ?>
+                <input type="search" placeholder="Search <?= esc(strtolower($heading), 'attr') ?>" data-filter-input autocomplete="off">
+            </label>
+        </div>
+        <?= view($presenter, ['rows' => $rows, 'columns' => $columns, 'slug' => $slug, 'title' => $title]) ?>
+        <div hidden data-filter-empty>
+            <?= view('partials/empty', ['icon' => 'search', 'title' => 'No matches', 'text' => 'Try a different search term.']) ?>
+        </div>
+    </div>
+<?php endif ?>
 <?= $this->endSection() ?>

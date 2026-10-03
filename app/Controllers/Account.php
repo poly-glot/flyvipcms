@@ -13,7 +13,7 @@ class Account extends BaseController
 {
     public function password(): string
     {
-        return view('account/password', ['layout' => $this->layout()]);
+        return view('account/password');
     }
 
     public function updatePassword(): RedirectResponse
@@ -47,10 +47,5 @@ class Account extends BaseController
         auth()->getProvider()->save($user);
 
         return $this->back('account/password', 'success', 'Password updated.');
-    }
-
-    private function layout(): string
-    {
-        return auth()->user()?->inGroup('admin') ? 'layouts/admin' : 'layouts/portal';
     }
 }

@@ -101,7 +101,16 @@ class Members extends BaseController
                 ->get()->getResultArray(),
             'payments' => $db->table('payments')->where('user_id', $userId)->where('deleted_at', null)->orderBy('id', 'DESC')->get()->getResultArray(),
             'ledger' => $db->table('points_ledger')->where('user_id', $userId)->orderBy('id', 'DESC')->limit(25)->get()->getResultArray(),
-            'reservations' => $db->table('reservations')->where('user_id', $userId)->orderBy('flight_date', 'DESC')->get()->getResultArray(),
+            'reservations' => $db->table('reservations')
+                ->select('reservations.*, aircrafts.name AS aircraft_name, aircrafts.passenger_capacity AS capacity, from_airport.name AS from_name, to_airport.name AS to_name')
+                ->join('aircrafts', 'aircrafts.id = reservations.aircraft_id')
+                ->join('air_routes', 'air_routes.id = reservations.route_id')
+                ->join('airports AS from_airport', 'from_airport.id = air_routes.from_airport_id')
+                ->join('airports AS to_airport', 'to_airport.id = air_routes.to_airport_id')
+                ->where('reservations.user_id', $userId)
+                ->orderBy('reservations.flight_date', 'DESC')
+                ->get()
+                ->getResultArray(),
             'balance' => service('points')->balance($userId),
             'contactTypes' => array_column($db->table('contact_types')->get()->getResultArray(), 'name', 'id'),
         ]);

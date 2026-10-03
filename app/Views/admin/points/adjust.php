@@ -1,18 +1,25 @@
-<?= $this->extend('layouts/admin') ?>
+<?= $this->extend('layouts/shell') ?>
+
+<?= $this->section('title') ?>Add points<?= $this->endSection() ?>
+<?= $this->section('subtitle') ?>Credit a member's balance outside the payment flow.<?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
-<div class="head"><h1>Add points</h1></div>
-<form class="grid" method="post" action="<?= site_url('admin/points/adjust') ?>">
+<form class="form" method="post" action="<?= site_url('admin/points/adjust') ?>">
     <?= csrf_field() ?>
-    <label>Member
-        <select name="user_id" required>
-            <?php foreach ($members as $id => $label): ?>
-                <option value="<?= $id ?>" <?= (string) old('user_id') === (string) $id ? 'selected' : '' ?>><?= esc($label) ?></option>
-            <?php endforeach ?>
-        </select>
-    </label>
-    <label>Points<input type="number" step="0.01" min="0.01" name="amount" value="<?= esc(old('amount')) ?>" required></label>
-    <label>Remark<input type="text" name="remark" value="<?= esc(old('remark')) ?>" required></label>
-    <div class="full"><button type="submit">Add points</button> <a href="<?= site_url('admin/points') ?>">Cancel</a></div>
+    <section class="form-section">
+        <div class="form-section__intro">
+            <h2>Adjustment</h2>
+            <p>The remark is stored in the ledger entry.</p>
+        </div>
+        <div class="fields">
+            <?= ui_select('user_id', 'Member', $members, null, ['field_class' => 'field--full', 'required' => true]) ?>
+            <?= ui_field('amount', 'Points', 'number', null, ['min' => '0.01', 'required' => true, 'step' => '0.01']) ?>
+            <?= ui_field('remark', 'Remark', 'text', null, ['required' => true]) ?>
+        </div>
+    </section>
+    <div class="form-actions">
+        <button class="button" type="submit">Add points</button>
+        <a class="button button--quiet" href="<?= site_url('admin/points') ?>">Cancel</a>
+    </div>
 </form>
 <?= $this->endSection() ?>

@@ -23,7 +23,7 @@ class Dashboard extends BaseController
                 'Pilots' => $db->table('pilots')->where('deleted_at', null)->countAllResults(),
             ],
             'overdue' => $db->table('members')
-                ->select('members.member_code, members.next_due_on, profiles.first_name, profiles.last_name')
+                ->select('members.user_id, members.member_code, members.next_due_on, profiles.first_name, profiles.last_name')
                 ->join('profiles', 'profiles.user_id = members.user_id')
                 ->where('members.plan_id IS NOT NULL')
                 ->where('members.deleted_at', null)
@@ -31,6 +31,22 @@ class Dashboard extends BaseController
                 ->orderBy('members.next_due_on')
                 ->get()
                 ->getResultArray(),
+            'upcoming' => $db->table('reservations')
+                ->select('reservations.*, members.member_code, profiles.first_name, profiles.last_name, aircrafts.name AS aircraft_name, aircrafts.passenger_capacity AS capacity, from_airport.name AS from_name, to_airport.name AS to_name')
+                ->join('members', 'members.user_id = reservations.user_id')
+                ->join('profiles', 'profiles.user_id = reservations.user_id')
+                ->join('aircrafts', 'aircrafts.id = reservations.aircraft_id')
+                ->join('air_routes', 'air_routes.id = reservations.route_id')
+                ->join('airports AS from_airport', 'from_airport.id = air_routes.from_airport_id')
+                ->join('airports AS to_airport', 'to_airport.id = air_routes.to_airport_id')
+                ->where('reservations.parent_reservation_id', null)
+                ->where('reservations.status !=', 'cancelled')
+                ->where('reservations.flight_date >=', $today)
+                ->orderBy('reservations.flight_date')
+                ->limit(5)
+                ->get()
+                ->getResultArray(),
+            'today' => $today,
         ]);
     }
 }

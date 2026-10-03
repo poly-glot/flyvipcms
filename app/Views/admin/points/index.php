@@ -1,29 +1,16 @@
-<?= $this->extend('layouts/admin') ?>
+<?= $this->extend('layouts/shell') ?>
+
+<?= $this->section('title') ?>Points history<?= $this->endSection() ?>
+<?= $this->section('subtitle') ?>The 300 most recent movements across all members<?= $this->endSection() ?>
+<?= $this->section('actions') ?>
+<a class="button button--quiet" href="<?= site_url('admin/points/transfer') ?>"><?= ui_icon('swap', 'icon icon--sm') ?>Transfer</a>
+<a class="button" href="<?= site_url('admin/points/adjust') ?>"><?= ui_icon('plus', 'icon icon--sm') ?>Add points</a>
+<?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
-<div class="head">
-    <h1>Points history</h1>
-    <div>
-        <a class="button" href="<?= site_url('admin/points/adjust') ?>">Add points</a>
-        <a class="button" href="<?= site_url('admin/points/transfer') ?>">Transfer</a>
-    </div>
-</div>
-<table>
-    <thead><tr><th>Date</th><th>Member</th><th>Code</th><th>Description</th><th>Amount</th><th>Balance</th></tr></thead>
-    <tbody>
-        <?php foreach ($entries as $entry): ?>
-            <tr>
-                <td><?= esc($entry['created_at']) ?></td>
-                <td><?= esc($entry['first_name'] . ' ' . $entry['last_name']) ?></td>
-                <td><?= esc($entry['member_code']) ?></td>
-                <td><?= esc($entry['description']) ?></td>
-                <td class="<?= (float) $entry['amount'] < 0 ? 'neg' : 'pos' ?>"><?= esc($entry['amount']) ?></td>
-                <td><?= esc($entry['balance_after']) ?></td>
-            </tr>
-        <?php endforeach ?>
-        <?php if ($entries === []): ?>
-            <tr><td colspan="6" class="muted">No points movements yet.</td></tr>
-        <?php endif ?>
-    </tbody>
-</table>
+<?php if ($entries === []): ?>
+    <?= view('partials/empty', ['icon' => 'star', 'title' => 'No points movements yet', 'text' => 'Payments, bookings, refunds and transfers will be listed here.', 'actionUrl' => site_url('admin/points/adjust'), 'actionLabel' => 'Add points']) ?>
+<?php else: ?>
+    <?= view('partials/ledger', ['entries' => $entries]) ?>
+<?php endif ?>
 <?= $this->endSection() ?>

@@ -13,6 +13,8 @@ $routes->post('logout', '\CodeIgniter\Shield\Controllers\LoginController::logout
 $routes->get('account/password', 'Account::password', ['filter' => 'session']);
 $routes->post('account/password', 'Account::updatePassword', ['filter' => 'session']);
 
+$routes->get('flights/taken-seats', 'FlightSeats::taken', ['filter' => 'session']);
+
 $crudResources = [
     'aircraft-types' => 'AircraftTypes',
     'aircrafts' => 'Aircrafts',

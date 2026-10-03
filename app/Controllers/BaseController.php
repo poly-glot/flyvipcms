@@ -9,7 +9,7 @@ use CodeIgniter\HTTP\RedirectResponse;
 
 abstract class BaseController extends Controller
 {
-    protected $helpers = ['form', 'url', 'auth'];
+    protected $helpers = ['form', 'url', 'auth', 'ui'];
 
     protected function back(string $to, string $type, string $message): RedirectResponse
     {

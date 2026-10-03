@@ -1,15 +1,20 @@
-<?php foreach (['success' => 'ok', 'error' => 'bad', 'message' => 'ok'] as $key => $class): ?>
-    <?php if (session()->getFlashdata($key) !== null): ?>
-        <div class="flash flash--<?= $class ?>" role="status"><?= esc(session()->getFlashdata($key)) ?></div>
-    <?php endif ?>
-<?php endforeach ?>
-<?php $errors = session()->getFlashdata('errors'); ?>
-<?php if (is_array($errors) && $errors !== []): ?>
-    <div class="flash flash--bad" role="alert">
-        <ul>
-            <?php foreach ($errors as $error): ?>
-                <li><?= esc($error) ?></li>
-            <?php endforeach ?>
-        </ul>
-    </div>
-<?php endif ?>
+<?php
+$toasts = [];
+
+foreach (['success' => 'ok', 'message' => 'ok', 'error' => 'bad'] as $key => $tone) {
+    $message = session()->getFlashdata($key);
+
+    if (is_string($message) && $message !== '') {
+        $toasts[] = [$tone, $message];
+    }
+}
+?>
+<div class="toasts" data-toasts aria-live="polite">
+    <?php foreach ($toasts as [$tone, $message]): ?>
+        <div class="toast toast--<?= $tone ?>" role="<?= $tone === 'bad' ? 'alert' : 'status' ?>" data-toast data-sticky="<?= $tone === 'bad' ? 'true' : 'false' ?>">
+            <?= ui_icon($tone === 'bad' ? 'alert' : 'check') ?>
+            <p><?= esc($message) ?></p>
+            <button type="button" data-toast-close aria-label="Dismiss"><?= ui_icon('x', 'icon icon--sm') ?></button>
+        </div>
+    <?php endforeach ?>
+</div>
