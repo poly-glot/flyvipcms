@@ -44,6 +44,6 @@ final class QuarterCalendar
 
     public static function firstDueAfterJoining(DateTimeImmutable $paidOn): DateTimeImmutable
     {
-        return self::dueAfter(self::quarterStart($paidOn)->modify('+3 months -1 day'));
+        return self::dueAfter(self::quarterEnd(self::quarterStart($paidOn)));
     }
 }

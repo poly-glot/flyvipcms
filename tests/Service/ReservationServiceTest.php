@@ -221,4 +221,19 @@ final class ReservationServiceTest extends DatabaseTestCase
         $this->expectException(DomainRuleViolation::class);
         service('reservations')->book($userId, $fleet['route'], $fleet['aircraft'], $this->tomorrow(), 'partial', [5]);
     }
+
+    public function testListingJoinsFlightDetailsAndOptionallyTheMember(): void
+    {
+        $fleet = $this->fleet(capacity: 4);
+        $userId = $this->member();
+        $id = service('reservations')->book($userId, $fleet['route'], $fleet['aircraft'], $this->tomorrow(), 'complete');
+
+        $plain = service('reservations')->listing()->where('reservations.id', $id)->get()->getResultArray()[0];
+        $withMember = service('reservations')->listing(true)->where('reservations.id', $id)->get()->getResultArray()[0];
+
+        $this->assertSame(4, (int) $plain['capacity']);
+        $this->assertArrayNotHasKey('member_code', $plain);
+        $this->assertArrayHasKey('member_code', $withMember);
+        $this->assertSame($plain['from_name'], $withMember['from_name']);
+    }
 }

@@ -32,7 +32,7 @@ class Points extends BaseController
     public function storeAdjustment(): RedirectResponse
     {
         if (!$this->validate(['user_id' => 'required|is_natural_no_zero', 'amount' => 'required|decimal|greater_than[0]', 'remark' => 'required|max_length[255]'])) {
-            return $this->backWithErrors($this->validator?->getErrors() ?? []);
+            return $this->backWithValidationErrors();
         }
 
         service('points')->credit(
@@ -53,7 +53,7 @@ class Points extends BaseController
     public function storeTransfer(): RedirectResponse
     {
         if (!$this->validate(['sender_id' => 'required|is_natural_no_zero', 'receiver_id' => 'required|is_natural_no_zero|differs[sender_id]', 'amount' => 'required|decimal|greater_than[0]'])) {
-            return $this->backWithErrors($this->validator?->getErrors() ?? []);
+            return $this->backWithValidationErrors();
         }
 
         try {
@@ -72,22 +72,6 @@ class Points extends BaseController
 
     private function members(): array
     {
-        $points = service('points');
-        $rows = db_connect()->table('members')
-            ->select('members.user_id, members.member_code, profiles.first_name, profiles.last_name')
-            ->join('profiles', 'profiles.user_id = members.user_id')
-            ->where('members.plan_id IS NOT NULL')
-            ->where('members.deleted_at', null)
-            ->orderBy('profiles.last_name')
-            ->get()
-            ->getResultArray();
-
-        $labels = [];
-
-        foreach ($rows as $row) {
-            $labels[$row['user_id']] = "{$row['first_name']} {$row['last_name']} [{$row['member_code']}] - {$points->balance((int) $row['user_id'])} pts";
-        }
-
-        return $labels;
+        return $this->memberOptions(service('members')->primaryMembers(), true);
     }
 }

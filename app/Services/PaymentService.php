@@ -92,11 +92,6 @@ final readonly class PaymentService
         return [$current->format('Y-m-d'), $current->modify('+3 months')->format('Y-m-d')];
     }
 
-    public function nextDueOn(int $userId): ?string
-    {
-        return $this->primaryMember($userId)['next_due_on'];
-    }
-
     private function applyJoining(array $member, DateTimeImmutable $paidOn): void
     {
         $this->db->table('members')->where('id', $member['id'])->update([
@@ -124,7 +119,7 @@ final readonly class PaymentService
 
     private function nextTermStart(int $memberId, DateTimeImmutable $paidOn, ?string $requested): DateTimeImmutable
     {
-        $last = $this->db->table('membership_terms')->where('member_id', $memberId)->orderBy('id', 'DESC')->limit(1)->get()->getRowArray();
+        $last = $this->latestTerm($memberId);
 
         if ($last !== null) {
             return new DateTimeImmutable($last['ends_on'])->modify('+1 day');
@@ -161,10 +156,10 @@ final readonly class PaymentService
 
     private function nextOpenQuarter(int $memberId, DateTimeImmutable $paidOn): array
     {
-        $term = $this->db->table('membership_terms')->where('member_id', $memberId)->orderBy('id', 'DESC')->limit(1)->get()->getRowArray();
+        $term = $this->latestTerm($memberId);
 
         if ($term !== null) {
-            $paid = (int) $this->db->table('membership_quarters')->where('term_id', $term['id'])->countAllResults();
+            $paid = $this->paidQuarters((int) $term['id']);
 
             if ($paid < 4) {
                 return [(int) $term['id'], new DateTimeImmutable($term['starts_on']), $paid + 1];
@@ -180,9 +175,19 @@ final readonly class PaymentService
 
     private function canStartYearlyTerm(int $memberId): bool
     {
-        $term = $this->db->table('membership_terms')->where('member_id', $memberId)->orderBy('id', 'DESC')->limit(1)->get()->getRowArray();
+        $term = $this->latestTerm($memberId);
 
-        return $term === null || (int) $this->db->table('membership_quarters')->where('term_id', $term['id'])->countAllResults() >= 4;
+        return $term === null || $this->paidQuarters((int) $term['id']) >= 4;
+    }
+
+    private function latestTerm(int $memberId): ?array
+    {
+        return $this->db->table('membership_terms')->where('member_id', $memberId)->orderBy('id', 'DESC')->limit(1)->get()->getRowArray();
+    }
+
+    private function paidQuarters(int $termId): int
+    {
+        return (int) $this->db->table('membership_quarters')->where('term_id', $termId)->countAllResults();
     }
 
     private function insertPayment(int $userId, string $type, string $amount, DateTimeImmutable $paidOn, string $remark, int $adminId): int

@@ -25,7 +25,7 @@ class Account extends BaseController
         ];
 
         if (!$this->validate($rules)) {
-            return $this->backWithErrors($this->validator?->getErrors() ?? []);
+            return $this->backWithValidationErrors();
         }
 
         $user = auth()->user();

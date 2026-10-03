@@ -6,7 +6,6 @@ namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
 use App\Exceptions\DomainRuleViolation;
-use App\Models\RouteModel;
 use App\Services\MemberService;
 use CodeIgniter\Exceptions\PageNotFoundException;
 use CodeIgniter\HTTP\RedirectResponse;
@@ -14,27 +13,6 @@ use CodeIgniter\Shield\Exceptions\ValidationException;
 
 class Members extends BaseController
 {
-    private const array PROFILE_RULES = [
-        'first_name' => 'required|max_length[100]',
-        'last_name' => 'required|max_length[100]',
-        'company' => 'permit_empty|max_length[150]',
-        'street_address' => 'permit_empty|max_length[255]',
-        'country_id' => 'permit_empty|is_natural_no_zero',
-        'zone_id' => 'permit_empty|is_natural_no_zero',
-        'city' => 'permit_empty|max_length[100]',
-        'zip_code' => 'permit_empty|max_length[20]',
-        'cellphone' => 'permit_empty|max_length[30]',
-        'office_phone' => 'permit_empty|max_length[30]',
-        'home_phone' => 'permit_empty|max_length[30]',
-        'secondary_phone' => 'permit_empty|max_length[30]',
-        'id_number' => 'permit_empty|max_length[50]',
-        'id_due_on' => 'permit_empty|valid_date[Y-m-d]',
-        'passport_number' => 'permit_empty|max_length[50]',
-        'passport_issued_on' => 'permit_empty|valid_date[Y-m-d]',
-        'passport_due_on' => 'permit_empty|valid_date[Y-m-d]',
-        'favourite_route_id' => 'permit_empty|is_natural_no_zero',
-    ];
-
     public function index(): string
     {
         return view('admin/members/index', [
@@ -59,14 +37,14 @@ class Members extends BaseController
 
     public function create(): RedirectResponse
     {
-        $rules = self::PROFILE_RULES + $this->accountRules() + [
+        $rules = MemberService::PROFILE_RULES + $this->accountRules() + [
             'plan_id' => 'required|is_natural_no_zero',
             'joining_fee' => 'required|decimal|greater_than_equal_to[0]',
             'yearly_fee' => 'required|decimal|greater_than[0]',
         ];
 
         if (!$this->validate($rules)) {
-            return $this->backWithErrors($this->validator?->getErrors() ?? []);
+            return $this->backWithValidationErrors();
         }
 
         try {
@@ -101,12 +79,7 @@ class Members extends BaseController
                 ->get()->getResultArray(),
             'payments' => $db->table('payments')->where('user_id', $userId)->where('deleted_at', null)->orderBy('id', 'DESC')->get()->getResultArray(),
             'ledger' => $db->table('points_ledger')->where('user_id', $userId)->orderBy('id', 'DESC')->limit(25)->get()->getResultArray(),
-            'reservations' => $db->table('reservations')
-                ->select('reservations.*, aircrafts.name AS aircraft_name, aircrafts.passenger_capacity AS capacity, from_airport.name AS from_name, to_airport.name AS to_name')
-                ->join('aircrafts', 'aircrafts.id = reservations.aircraft_id')
-                ->join('air_routes', 'air_routes.id = reservations.route_id')
-                ->join('airports AS from_airport', 'from_airport.id = air_routes.from_airport_id')
-                ->join('airports AS to_airport', 'to_airport.id = air_routes.to_airport_id')
+            'reservations' => service('reservations')->listing()
                 ->where('reservations.user_id', $userId)
                 ->orderBy('reservations.flight_date', 'DESC')
                 ->get()
@@ -126,14 +99,14 @@ class Members extends BaseController
     public function update(int $userId): RedirectResponse
     {
         $this->member($userId);
-        $rules = self::PROFILE_RULES + [
+        $rules = MemberService::PROFILE_RULES + [
             'username' => "required|alpha_numeric_punct|min_length[3]|max_length[30]|is_unique[users.username,id,{$userId}]",
             'email' => "required|valid_email|is_unique[auth_identities.secret,user_id,{$userId}]",
             'password' => 'permit_empty|min_length[8]|max_byte[72]',
         ];
 
         if (!$this->validate($rules)) {
-            return $this->backWithErrors($this->validator?->getErrors() ?? []);
+            return $this->backWithValidationErrors();
         }
 
         try {
@@ -150,7 +123,7 @@ class Members extends BaseController
         $this->member($userId);
 
         if (!$this->validate(['status' => 'required|in_list[inactive,active,banned]'])) {
-            return $this->backWithErrors($this->validator?->getErrors() ?? []);
+            return $this->backWithValidationErrors();
         }
 
         service('members')->setStatus($userId, (string) $this->request->getPost('status'));
@@ -161,10 +134,10 @@ class Members extends BaseController
     public function addSubMember(int $parentId): RedirectResponse
     {
         $this->member($parentId);
-        $rules = self::PROFILE_RULES + $this->accountRules() + ['contact_type_id' => 'required|is_natural_no_zero'];
+        $rules = MemberService::PROFILE_RULES + $this->accountRules() + ['contact_type_id' => 'required|is_natural_no_zero'];
 
         if (!$this->validate($rules)) {
-            return $this->backWithErrors($this->validator?->getErrors() ?? []);
+            return $this->backWithValidationErrors();
         }
 
         try {
@@ -211,13 +184,8 @@ class Members extends BaseController
 
     private function formData(array $member): array
     {
-        $db = db_connect();
-
-        return [
-            'plans' => array_column($db->table('membership_plans')->get()->getResultArray(), 'name', 'id'),
-            'countries' => array_column($db->table('countries')->where('active', 1)->orderBy('name')->get()->getResultArray(), 'name', 'id'),
-            'zones' => array_column($db->table('country_zones')->where('active', 1)->orderBy('name')->get()->getResultArray(), 'name', 'id'),
-            'routes' => new RouteModel()->labelled(),
+        return service('members')->profileOptions() + [
+            'plans' => array_column(db_connect()->table('membership_plans')->get()->getResultArray(), 'name', 'id'),
             'values' => $member,
         ];
     }
