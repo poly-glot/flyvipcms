@@ -1,0 +1,41 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: sleep infinity
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      APP_FULL_BASE_URL: http://localhost:8090/
+      CI_ENVIRONMENT: development
+      DB_HOST: db
+      DB_NAME: flyvip
+      DB_PASS: flyvip
+      DB_TEST_NAME: flyvip_test
+      DB_USER: flyvip
+      XDEBUG_MODE: "off"
+    ports:
+      - "127.0.0.1:8090:8080"
+    volumes:
+      - ..:/workspaces/flyvipcms:cached
+
+  db:
+    environment:
+      MYSQL_DATABASE: flyvip
+      MYSQL_PASSWORD: flyvip
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: flyvip
+    healthcheck:
+      interval: 5s
+      retries: 20
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
+      timeout: 5s
+    image: mysql:8.4
+    restart: unless-stopped
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+volumes:
+  mysql-data:

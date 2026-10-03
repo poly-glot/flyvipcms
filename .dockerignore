@@ -1,0 +1,15 @@
+.git
+.github
+.claude
+.devcontainer
+.idea
+.vscode
+.env
+.env.*
+tests
+vendor
+writable/*
+*.md
+Dockerfile
+.dockerignore
+docker-compose.yml

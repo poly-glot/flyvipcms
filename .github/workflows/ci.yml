@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  cancel-in-progress: true
+  group: ci-${{ github.ref }}
+
+jobs:
+  quality:
+    runs-on: ubuntu-24.04
+    services:
+      db:
+        image: mysql:8.4
+        env:
+          MYSQL_DATABASE: flyvip_test
+          MYSQL_PASSWORD: flyvip
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_USER: flyvip
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=5s
+          --health-retries=20
+          --health-timeout=5s
+        ports:
+          - 3306:3306
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PASS: flyvip
+      DB_TEST_NAME: flyvip_test
+      DB_USER: flyvip
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          coverage: pcov
+          extensions: bcmath, gd, intl, mbstring, mysqli, zip
+          php-version: '8.4'
+          tools: composer:v2
+
+      - id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v4
+        with:
+          key: composer-${{ hashFiles('composer.lock') }}
+          path: ${{ steps.composer-cache.outputs.dir }}
+          restore-keys: composer-
+
+      - run: composer install --no-interaction --prefer-dist
+
+      - run: composer audit
+
+      - run: composer validate --strict
+
+      - run: composer quality
+
+  image:
+    needs: quality
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+
+      - run: docker build -t flyvipcms:ci .
