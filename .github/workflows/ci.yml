@@ -1,0 +1,195 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  cancel-in-progress: true
+  group: ci-${{ github.ref }}
+
+jobs:
+  quality:
+    runs-on: ubuntu-24.04
+    services:
+      db:
+        image: mysql:8.4
+        env:
+          MYSQL_DATABASE: flyvip_test
+          MYSQL_PASSWORD: flyvip
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_USER: flyvip
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=5s
+          --health-retries=20
+          --health-timeout=5s
+        ports:
+          - 3306:3306
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PASS: flyvip
+      DB_TEST_NAME: flyvip_test
+      DB_USER: flyvip
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          coverage: pcov
+          extensions: bcmath, gd, intl, mbstring, mysqli, zip
+          php-version: '8.4'
+          tools: composer:v2
+
+      - uses: actions/setup-node@v7
+        with:
+          cache: npm
+          node-version: '22'
+
+      - id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v6
+        with:
+          key: composer-${{ hashFiles('composer.lock') }}
+          path: ${{ steps.composer-cache.outputs.dir }}
+          restore-keys: composer-
+
+      - run: composer install --no-interaction --prefer-dist
+
+      - run: npm ci --no-audit --no-fund
+
+      - run: composer audit
+
+      - run: composer validate --strict
+
+      - run: composer quality
+
+  e2e:
+    needs: quality
+    runs-on: ubuntu-24.04
+    services:
+      db:
+        image: mysql:8.4
+        env:
+          MYSQL_DATABASE: flyvip
+          MYSQL_PASSWORD: flyvip
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_USER: flyvip
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=5s
+          --health-retries=20
+          --health-timeout=5s
+        ports:
+          - 3306:3306
+    env:
+      CI_ENVIRONMENT: development
+      DB_HOST: 127.0.0.1
+      DB_NAME: flyvip
+      DB_PASS: flyvip
+      DB_USER: flyvip
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          extensions: bcmath, gd, intl, mbstring, mysqli, zip
+          php-version: '8.4'
+          tools: composer:v2
+
+      - uses: actions/setup-node@v7
+        with:
+          cache: npm
+          node-version: '22'
+
+      - run: composer install --no-interaction --prefer-dist
+
+      - run: npm ci --no-audit --no-fund
+
+      - run: npx playwright install --with-deps chromium
+
+      - run: php spark migrate --all
+
+      - run: php spark db:seed DemoSeeder
+
+      - run: npm run test:e2e
+
+      - if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/artifacts/
+          retention-days: 7
+
+  visual:
+    needs: quality
+    continue-on-error: true
+    runs-on: ubuntu-24.04
+    services:
+      db:
+        image: mysql:8.4
+        env:
+          MYSQL_DATABASE: flyvip
+          MYSQL_PASSWORD: flyvip
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_USER: flyvip
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=5s
+          --health-retries=20
+          --health-timeout=5s
+        ports:
+          - 3306:3306
+    env:
+      CI_ENVIRONMENT: development
+      DB_HOST: 127.0.0.1
+      DB_NAME: flyvip
+      DB_PASS: flyvip
+      DB_USER: flyvip
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          extensions: bcmath, gd, intl, mbstring, mysqli, zip
+          php-version: '8.4'
+          tools: composer:v2
+
+      - uses: actions/setup-node@v7
+        with:
+          cache: npm
+          node-version: '22'
+
+      - run: composer install --no-interaction --prefer-dist
+
+      - run: npm ci --no-audit --no-fund
+
+      - run: npx playwright install --with-deps chromium
+
+      - run: php spark migrate --all
+
+      - run: php spark db:seed DemoSeeder
+
+      - run: npm run test:visual
+
+      - if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: visual-screenshots
+          path: test-results/visual/
+          retention-days: 14
+
+  image:
+    needs: quality
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - run: docker build -t flyvipcms:ci .

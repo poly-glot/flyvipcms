@@ -1,0 +1,21 @@
+{
+    frankenphp
+    order php_server before file_server
+    log {
+        output stderr
+        format json
+    }
+}
+
+:8080 {
+    root * /app/public
+    encode zstd br gzip
+
+    @health path /health
+    respond @health 200
+
+    @forwarded header X-Forwarded-Host *
+    request_header @forwarded Host {http.request.header.X-Forwarded-Host}
+
+    php_server
+}
