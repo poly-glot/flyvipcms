@@ -270,25 +270,6 @@ if (!function_exists('ui_is_current')) {
     }
 }
 
-if (!function_exists('ui_subnav')) {
-    function ui_subnav(string $uri): array
-    {
-        foreach (ui_nav(true) as $group) {
-            if (!in_array($group['label'], ['Fleet', 'Crew'], true)) {
-                continue;
-            }
-
-            foreach ($group['items'] as $item) {
-                if ($uri === $item[0] || str_starts_with($uri, $item[0] . '/')) {
-                    return $group;
-                }
-            }
-        }
-
-        return [];
-    }
-}
-
 if (!function_exists('ui_nav_label')) {
     function ui_nav_label(string $path, string $fallback): string
     {

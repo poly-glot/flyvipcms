@@ -5,7 +5,6 @@
 $user = auth()->user();
 $isAdmin = (bool) $user?->inGroup('admin');
 $displayName = (string) ($user?->username ?? '');
-$subnav = $isAdmin ? ui_subnav(uri_string()) : [];
 $home = $isAdmin ? 'admin' : 'portal';
 ?>
 <a class="sr-only" href="#main">Skip to content</a>
@@ -58,15 +57,7 @@ $home = $isAdmin ? 'admin' : 'portal';
             <a class="stage__avatar" href="<?= site_url('account/password') ?>" aria-label="Account and password" title="<?= esc($displayName, 'attr') ?>"><?= ui_avatar($displayName) ?></a>
         </header>
 
-        <main class="stage__body<?= $subnav !== [] ? ' stage__body--with-subnav' : '' ?>" id="main">
-            <?php if ($subnav !== []): ?>
-                <nav class="subnav" aria-label="<?= esc($subnav['label'], 'attr') ?>">
-                    <h2><?= esc($subnav['label']) ?></h2>
-                    <?php foreach ($subnav['items'] as [$path, $label, $icon]): ?>
-                        <a href="<?= site_url($path) ?>" <?= ui_is_current($path) ? 'aria-current="page"' : '' ?>><?= ui_icon($icon, 'icon icon--sm') ?><?= esc($label) ?></a>
-                    <?php endforeach ?>
-                </nav>
-            <?php endif ?>
+        <main class="stage__body" id="main">
             <div class="page">
                 <?= view('partials/error_summary') ?>
                 <?= $this->renderSection('content') ?>
