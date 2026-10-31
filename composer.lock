@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1ba114a9f512d2c2e62c3b9b08b40385",
+    "content-hash": "822017931934173dc47805b041b8b04b",
     "packages": [
         {
             "name": "codeigniter4/framework",
@@ -389,36 +389,39 @@
         },
         {
             "name": "codeigniter/phpstan-codeigniter",
-            "version": "v1.6.0",
+            "version": "v2.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/CodeIgniter/phpstan-codeigniter.git",
-                "reference": "509c7e3c6a63e082b00be6e948e4d79a66ce6eb3"
+                "reference": "ac1240594e8d7d766b741490f9e675f0096187b6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/CodeIgniter/phpstan-codeigniter/zipball/509c7e3c6a63e082b00be6e948e4d79a66ce6eb3",
-                "reference": "509c7e3c6a63e082b00be6e948e4d79a66ce6eb3",
+                "url": "https://api.github.com/repos/CodeIgniter/phpstan-codeigniter/zipball/ac1240594e8d7d766b741490f9e675f0096187b6",
+                "reference": "ac1240594e8d7d766b741490f9e675f0096187b6",
                 "shasum": ""
             },
             "require": {
+                "ext-sqlite3": "*",
                 "php": "^8.2",
-                "phpstan/phpstan": "^2.0"
+                "phpstan/phpstan": "^2.2"
             },
             "conflict": {
                 "codeigniter/framework": "*"
             },
             "require-dev": {
-                "codeigniter/coding-standard": "^1.7",
-                "codeigniter4/framework": "^4.6.2",
-                "codeigniter4/shield": "^1.0",
-                "friendsofphp/php-cs-fixer": "^3.49",
-                "nexusphp/cs-config": "^3.21",
-                "phpstan/extension-installer": "^1.3",
+                "codeigniter/coding-standard": "^1.8",
+                "codeigniter4/framework": "^4.7",
+                "codeigniter4/shield": "^1.2",
+                "friendsofphp/php-cs-fixer": "^3.92",
+                "kubawerlos/php-cs-fixer-custom-fixers": "^3.35",
+                "nexusphp/cs-config": "^3.27",
+                "nexusphp/tachycardia": "^2.4",
+                "phpstan/extension-installer": "^1.4",
                 "phpstan/phpstan-deprecation-rules": "^2.0",
                 "phpstan/phpstan-phpunit": "^2.0",
                 "phpstan/phpstan-strict-rules": "^2.0",
-                "phpunit/phpunit": "^10.5 || ^11.4"
+                "phpunit/phpunit": "^11.5 || ^12.5"
             },
             "type": "phpstan-extension",
             "extra": {
@@ -457,7 +460,7 @@
                 "slack": "https://codeigniterchat.slack.com",
                 "source": "https://github.com/CodeIgniter/phpstan-codeigniter"
             },
-            "time": "2026-06-15T08:26:06+00:00"
+            "time": "2026-10-06T08:41:35+00:00"
         },
         {
             "name": "composer/pcre",
@@ -1312,11 +1315,11 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "2.2.16",
+            "version": "2.3.4",
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/46a6d9060e5a7763adfcc21ebcb8b504ebdbcb92",
-                "reference": "46a6d9060e5a7763adfcc21ebcb8b504ebdbcb92",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/f20ce6f3c82556cfcfc086b152445a12d1d64fff",
+                "reference": "f20ce6f3c82556cfcfc086b152445a12d1d64fff",
                 "shasum": ""
             },
             "require": {
@@ -1372,7 +1375,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-09-25T09:31:51+00:00"
+            "time": "2026-10-28T22:38:53+00:00"
         },
         {
             "name": "phpunit/php-code-coverage",
@@ -5113,5 +5116,5 @@
         "php": ">=8.4"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }
